@@ -12,46 +12,100 @@ var Deferred = require("promise-defer");
  * deferred: The deffered to resolve once a write is made
  */
 
-module.exports = Channel;
+var CLOSE_MESSAGE = "Channel is closed";
+
+module.exports = make;
+make.Channel = Channel;
+
+function make() {
+	var channel = new Channel();
+	Object.defineProperty(invoke, "open", {
+		get: getOpen
+	});
+
+	invoke.close = close;
+
+	return invoke;
+
+	function getOpen() {
+		return channel.open;
+	}
+
+	function close() {
+		return channel.close();
+	}
+
+	function invoke(value) {
+		if (value === undefined)
+			return channel.read();
+		return channel.write(value);
+	}
+}
 
 function Channel() {
-	var writeQueue = [];
-	var readQueue = [];
+	this.readQueue = [];
+	this.writeQueue = [];
+	this.open = true;
+}
 
-	return chan;
+Channel.prototype = {
+	open: true,
 
-	function read() {
-		if (writeQueue.length) {
-			var write = writeQueue.shift();
-			var value = write.value;
-			var deferWrite = write.deferred;
-			deferWrite.resolve();
-			return Promise.resolve(value);
-		}
+	close: close,
+	read: read,
+	write: write
+};
 
-		var deferRead = new Deferred();
-		readQueue.push(deferRead);
-		return deferRead.promise;
+function close() {
+	var closeError = new Error(CLOSE_MESSAGE);
+	this.open = false;
+	this.readQueue.forEach(function(item) {
+		item.reject(closeError);
+	});
+	this.writeQueue.forEach(function(item) {
+		item.deferred.reject(closeError);
+	});
+}
+
+function read() {
+	if (!this.open)
+		return Promise.reject(new Error(CLOSE_MESSAGE));
+
+	if (this.writeQueue.length) {
+		var write = this.writeQueue.shift();
+		var value = write.value;
+		var deferWrite = write.deferred;
+
+		deferWrite.resolve();
+
+		return Promise.resolve(value);
 	}
 
-	function write(value) {
-		if (readQueue.length) {
-			var deferRead = readQueue.shift();
-			deferRead.resolve(value);
-			return Promise.resolve();
-		}
+	var deferRead = new Deferred();
 
-		var deferWrite = new Deferred();
-		writeQueue.push({
-			value: value,
-			deferred: deferWrite
-		});
-		return deferWrite.promise;
+	this.readQueue.push(deferRead);
+
+	return deferRead.promise;
+}
+
+function write(value) {
+	if (!this.open)
+		return Promise.reject(new Error(CLOSE_MESSAGE));
+
+	if (this.readQueue.length) {
+		var deferRead = this.readQueue.shift();
+
+		deferRead.resolve(value);
+
+		return Promise.resolve();
 	}
 
-	function chan(value) {
-		if (value === undefined)
-			return read();
-		return write(value);
-	}
+	var deferWrite = new Deferred();
+
+	this.writeQueue.push({
+		value: value,
+		deferred: deferWrite
+	});
+
+	return deferWrite.promise;
 }

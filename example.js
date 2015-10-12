@@ -1,11 +1,12 @@
-var Channel = require("./");
+var makeChannel = require("./");
 
-var channel = Channel();
+var channel = makeChannel();
 
 Promise.all([
 	alice(channel),
 	bob(channel)
 ]).then(function() {
+	channel.close();
 	console.log("Done!");
 }).catch(function(e) {
 	console.log(e.stack);
