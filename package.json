@@ -1,11 +1,9 @@
 {
   "name": "promise-channel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Like Go Channels but using JavaScript Promises.",
   "main": "index.js",
   "dependencies": {
-    "assert-rejected": "^1.0.0",
-    "blue-tape": "^0.1.10",
     "promise-defer": "^1.0.0"
   },
   "devDependencies": {
