@@ -15,9 +15,13 @@ var makeChannel = require("promise-channel");
 
 var channel = makeChannel();
 
+channel.onClose().then(function(){
+    console.log("Closed");
+});
+
 Promise.all([
     alice(channel),
-    bob(channel)
+    bob(channel),
 ]).then(function() {
     channel.close();
 }).catch(function (e) {
@@ -59,8 +63,17 @@ When you invoke the channel with an argument, the value is then passed to whatev
 #### return
 A promise which resolves once something has read from the channel.
 
-### `channel.close()`
+### `channel.close(reason)`
 Closes the channel so that all pending and subsequent reads/writes will be rejected.
+
+### arguments
+- `reason` : An optional reason for closing the channel, will be passed to the onClose promise
 
 ### `channel.open`
 Property which tells you whether the channel is currently open
+
+### `channel.onClose()`
+Used to listen on when the channel will close
+
+#### return
+A promise that resolves once the channel is closed

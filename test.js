@@ -96,3 +96,9 @@ test("Subsequent writes should reject after close", function(t) {
 	var write = chan("Test");
 	return assertRejected(write);
 });
+
+test("Closing channel should resolve onClose", function(t) {
+	var chan = make();
+	chan.close();
+	return chan.onClose();
+});

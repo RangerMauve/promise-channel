@@ -24,6 +24,7 @@ function make() {
 	});
 
 	invoke.close = close;
+	invoke.onClose = onClose;
 
 	return invoke;
 
@@ -31,8 +32,12 @@ function make() {
 		return channel.open;
 	}
 
-	function close() {
-		return channel.close();
+	function close(reason) {
+		return channel.close(reason);
+	}
+
+	function onClose() {
+		return channel.onClose();
 	}
 
 	function invoke(value) {
@@ -43,36 +48,47 @@ function make() {
 }
 
 function Channel() {
-	this.readQueue = [];
-	this.writeQueue = [];
+	this._readQueue = [];
+	this._writeQueue = [];
+	this._onClosed = new Deferred();
 	this.open = true;
 }
 
 Channel.prototype = {
 	open: true,
+	_readQueue: null,
+	_writeQueue: null,
+	_onClosed: null,
 
 	close: close,
+	onClose: onClose,
 	read: read,
 	write: write
 };
 
-function close() {
+function close(reason) {
 	var closeError = new Error(CLOSE_MESSAGE);
 	this.open = false;
-	this.readQueue.forEach(function(item) {
+	this._readQueue.forEach(function(item) {
 		item.reject(closeError);
 	});
-	this.writeQueue.forEach(function(item) {
+	this._writeQueue.forEach(function(item) {
 		item.deferred.reject(closeError);
 	});
+	this._onClosed.resolve(reason);
+	return this._onClosed.promise;
+}
+
+function onClose() {
+	return this._onClosed.promise;
 }
 
 function read() {
 	if (!this.open)
 		return Promise.reject(new Error(CLOSE_MESSAGE));
 
-	if (this.writeQueue.length) {
-		var write = this.writeQueue.shift();
+	if (this._writeQueue.length) {
+		var write = this._writeQueue.shift();
 		var value = write.value;
 		var deferWrite = write.deferred;
 
@@ -83,7 +99,7 @@ function read() {
 
 	var deferRead = new Deferred();
 
-	this.readQueue.push(deferRead);
+	this._readQueue.push(deferRead);
 
 	return deferRead.promise;
 }
@@ -92,8 +108,8 @@ function write(value) {
 	if (!this.open)
 		return Promise.reject(new Error(CLOSE_MESSAGE));
 
-	if (this.readQueue.length) {
-		var deferRead = this.readQueue.shift();
+	if (this._readQueue.length) {
+		var deferRead = this._readQueue.shift();
 
 		deferRead.resolve(value);
 
@@ -102,7 +118,7 @@ function write(value) {
 
 	var deferWrite = new Deferred();
 
-	this.writeQueue.push({
+	this._writeQueue.push({
 		value: value,
 		deferred: deferWrite
 	});
