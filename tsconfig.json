@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"lib": [
+			"esnext.asynciterable",
+			"es2015.promise",
+			"es5"
+		],
+		"downlevelIteration": true,
+		"target": "es5"
+	}
+}
