@@ -1,6 +1,6 @@
 {
   "name": "promise-channel",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Like Go Channels but using JavaScript Promises.",
   "main": "index.js",
   "dependencies": {
@@ -11,7 +11,9 @@
     "blue-tape": "^0.1.10"
   },
   "scripts": {
-    "test": "ts-node test.ts"
+    "test": "ts-node test.ts",
+    "example": "ts-node example.ts",
+    "build": "tsc -p . -d"
   },
   "repository": {
     "type": "git",

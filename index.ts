@@ -13,11 +13,11 @@ class Channel<T> {
 		this._writeQueue = [];
 	}
 
-	get open() {
+	get open() : boolean {
 		return this._open;
 	}
 
-	get onClose() {
+	get onClose() : Promise<any> {
 		return this._onClose;
 	}
 
@@ -74,7 +74,7 @@ class Channel<T> {
 		return write.promise;
 	}
 
-	async* [Symbol.asyncIterator](){
+	async* [Symbol.asyncIterator]() : AsyncIterableIterator<T> {
 		var channel = this;
 		try {
 			while(channel.open) {

@@ -1,0 +1,5 @@
+
+# Ignore files not needed for publishing
+*.ts
+test.js
+example.js

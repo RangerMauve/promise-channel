@@ -1,6 +1,9 @@
-import Channel from "./";
+// Polyfill for older node.js versions
+if(!Symbol.asyncIterator)
+	// @ts-ignore
+	Symbol.asyncIterator = Symbol.for("asyncIterator");
 
-console.log("Starting");
+import Channel from "./";
 
 run()
 	.then(() => console.log("Done"))
@@ -9,14 +12,10 @@ run()
 async function run() {
 	let channel = new Channel<number>();
 
-	console.log("Starting");
-
 	await Promise.all([
 		readFrom(channel),
 		writeTo(channel)
 	]);
-
-	console.log("Finished");
 }
 
 async function readFrom(channel: Channel<number>){
@@ -41,7 +40,6 @@ async function writeTo(channel : Channel<number>) {
 
 function delay(ms){
 	return new Promise(function(resolve, reject){
-		console.log("Setting delay", ms);
 		setTimeout(resolve, ms);
 	});
 }
