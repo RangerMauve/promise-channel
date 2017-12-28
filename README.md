@@ -1,21 +1,20 @@
 # promise-channel
 Like Go Channels, but using JavaScript Promises.
 
+Supports [async-await](https://github.com/tc39/ecmascript-asyncawait) and [async-iteration](https://github.com/tc39/proposal-async-iteration).
 ```
 npm install --save promise-channel
 ```
 
 ## Example
-This example assumes a [babel](https://babeljs.io/) environment and uses [async functions](https://github.com/tc39/ecmascript-asyncawait). If you aren't using babel, this works well with generators wrapped by [co](https://www.npmjs.com/package/co). Reads and writes return promises, so you could use whatever flow control you want around that.
-
 This should look pretty familiar if you've used [goroutines](https://gobyexample.com/goroutines) with [go channels](https://tour.golang.org/concurrency/2);
 
 ```JavaScript
-var makeChannel = require("promise-channel");
+import Channel from "promise-channel";
 
-var channel = makeChannel();
+var channel = new Channel();
 
-channel.onClose().then(function(){
+channel.onClose.then(function(){
     console.log("Closed");
 });
 
@@ -29,33 +28,30 @@ Promise.all([
 });
 
 async function alice(channel) {
-    var name = await channel();
-    await channel("Hello, " + name);
+    var name = await channel.read();
+    await channel.write("Hello, " + name);
 }
 
 async function bob(channel) {
-    await channel("World");
-    var greeting = await channel();
+    await channel.write("World");
+    var greeting = await channel.read();
 
     console.log(greeting);
 }
 ```
 
 ## API
-### `make()`
-This is the default export from the module.
+### `Channel`
+The module exports the Channel class which should be intstantiated with `new`
 
-#### return
-A new channel
-
-### `channel()`
-When you invoke the channel without any arguments (or with undefined), this is considered a read.
+### `channel.read()`
+Attempts to read from the channel. Will throw if the channel is closed.
 
 #### return
 A promise which resolves to whatever value is written to the channel next.
 
-### `channel(value)`
-When you invoke the channel with an argument, the value is then passed to whatever reads from the channel next.
+### `channel.write(value)`
+Writes data to the channel. Will throw if the channel is closed.
 
 #### arguments
 - `value` : The value to write to the channel
@@ -70,10 +66,7 @@ Closes the channel so that all pending and subsequent reads/writes will be rejec
 - `reason` : An optional reason for closing the channel, will be passed to the onClose promise
 
 ### `channel.open`
-Property which tells you whether the channel is currently open
+Boolean property which tells you whether the channel is currently open
 
-### `channel.onClose()`
-Used to listen on when the channel will close
-
-#### return
-A promise that resolves once the channel is closed
+### `channel.onClose`
+Read-only promise that resolves once the channel is closed
