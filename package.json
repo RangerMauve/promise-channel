@@ -1,6 +1,6 @@
 {
   "name": "promise-channel",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Like Go Channels but using JavaScript Promises.",
   "main": "index.js",
   "dependencies": {
