@@ -17,7 +17,13 @@ class Channel<T> {
 		return this._open;
 	}
 
-	close(reason) : Promise<void> {
+	get onClose() {
+		return this._onClose;
+	}
+
+	close(reason?) : Promise<void> {
+		this._open = false;
+
 		this._onClose.resolve(reason);
 
 		let e = new CloseError(reason);

@@ -11,7 +11,7 @@
     "blue-tape": "^0.1.10"
   },
   "scripts": {
-    "test": "node test"
+    "test": "ts-node test.ts"
   },
   "repository": {
     "type": "git",
